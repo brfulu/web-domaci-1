@@ -1,9 +1,6 @@
 package app;
 
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.*;
 
 public class ProfessorStream extends EventStream {
     private Semaphore semaphore;
@@ -16,15 +13,20 @@ public class ProfessorStream extends EventStream {
     }
 
     @Override
-    void lock() {
+    boolean lock() {
         try {
-            semaphore.acquire();
-            barrier.await();
+            boolean hasAcquired = semaphore.tryAcquire(1, TimeUnit.SECONDS);
+            if (!hasAcquired) return false;
+            barrier.await(1, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            return false;
         } catch (BrokenBarrierException e) {
-            e.printStackTrace();
+            System.out.println("Pukla barijera");
+        } catch (TimeoutException e) {
+            semaphore.release();
+            return false;
         }
+        return true;
     }
 
     @Override

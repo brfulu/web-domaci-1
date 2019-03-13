@@ -5,11 +5,12 @@ import java.util.concurrent.BlockingQueue;
 public abstract class EventStream {
     protected BlockingQueue<Event> events;
 
-    abstract void lock();
+    abstract boolean lock();
+
     abstract void unlock();
 
-    public void startConnection() {
-        lock();
+    public boolean startConnection() {
+        return lock();
     }
 
     public void endConnection() {
@@ -24,23 +25,11 @@ public abstract class EventStream {
         }
     }
 
-    public Event takeEvent() {
-        Event event = null;
-        try {
-            event = events.take();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return event;
+    public Event takeEvent() throws InterruptedException {
+        return events.take();
     }
 
-    public Object getResult(Event event) {
-        Object result = new Object();
-        try {
-            result = event.getResult();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return result;
+    public Object getResult(Event event) throws InterruptedException {
+        return event.getResult();
     }
 }

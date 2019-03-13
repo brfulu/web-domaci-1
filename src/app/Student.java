@@ -3,6 +3,8 @@ package app;
 public class Student implements Runnable {
     private EventStream professorStream;
     private EventStream assistantStream;
+    private long arrivalTime;
+    private long duration;
 
     public Student(EventStream professorStream, EventStream assistantStream) {
         this.professorStream = professorStream;
@@ -11,17 +13,24 @@ public class Student implements Runnable {
 
     @Override
     public void run() {
+        arrivalTime = System.currentTimeMillis();
         int grade = -1;
-        boolean askProfessor = false;
+        boolean askProfessor = true;
         while (grade == -1) {
-            EventStream stream = askProfessor ? professorStream : assistantStream;
-            grade = getHomeworkGrade(stream);
-            if (grade != -1) {
-                System.out.println("Grade = " + grade);
-                saveGrade(grade);
+            try {
+                EventStream stream = askProfessor ? professorStream : assistantStream;
+                grade = getHomeworkGrade(stream);
+                if (grade != -1) {
+                    System.out.println("Grade = " + grade + " " + askProfessor);
+                    saveGrade(grade);
+                    System.out.println("Snimljeno");
+                    break;
+                }
+                askProfessor = !askProfessor;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 break;
             }
-            askProfessor = !askProfessor;
         }
     }
 
@@ -29,28 +38,33 @@ public class Student implements Runnable {
         App.gradesTotal.addAndGet(grade);
     }
 
-    private int getHomeworkGrade(EventStream stream) {
-        stream.startConnection();
+    private int getHomeworkGrade(EventStream stream) throws InterruptedException {
+        boolean success = stream.startConnection();
+        if (!success) {
+            return -1;
+        }
 
-        Event ready = new Event("ready", null);
-        stream.putEvent(ready);
-        stream.getResult(ready);
+        int grade = -1;
+        Event startEvent = new Event(Thread.currentThread().getName(),"start", null);
+        try {
+            stream.putEvent(startEvent);
 
-        defendHomework();
+            defendHomework();
 
-        Event done = new Event("done", null);
-        stream.putEvent(done);
-        int grade = (Integer) stream.getResult(done);
-
-        stream.endConnection();
+            Event doneEvent = new Event(Thread.currentThread().getName(), "done", null);
+            stream.putEvent(doneEvent);
+            grade = (Integer) stream.getResult(doneEvent);
+        } catch (InterruptedException e) {
+            grade = (Integer) stream.getResult(startEvent);
+          //  saveGrade(grade);
+        } finally {
+            stream.endConnection();
+        }
         return grade;
     }
 
-    private void defendHomework() {
-        try {
-            Thread.sleep(1500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    private void defendHomework() throws InterruptedException {
+        duration = Helper.getRandomInt(2000, 2000);
+        Thread.sleep(duration);
     }
 }
