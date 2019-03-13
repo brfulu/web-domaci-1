@@ -9,32 +9,27 @@ public class App {
     // student kaze zavrsio sam izlaganje
     // profesor mu u resultu posalje ocjenu
     // student zapise ocjenu u deljenu memoriju
-
-    public static BlockingQueue<Event> professorEvents = new LinkedBlockingQueue<>();
-    public static BlockingQueue<Event> assistantEvents = new SynchronousQueue<>();
-
-    public static Semaphore semaphore = new Semaphore(2);
-    public static CyclicBarrier barrier = new CyclicBarrier(2);
-
     public static AtomicInteger gradesTotal = new AtomicInteger();
 
     public static void main(String[] args) {
-        Professor professor = new Professor();
-        Assistant assistant = new Assistant();
+        EventStream professorStream = new ProfessorStream();
+        EventStream assistantStream = new AssistantStream();
+
+        Lecturer professor = new Professor(professorStream);
+        Lecturer assistant = new Assistant(assistantStream);
 
         ExecutorService lecturerExecutor = Executors.newFixedThreadPool(2);
         lecturerExecutor.execute(professor);
         lecturerExecutor.execute(assistant);
 
-        ScheduledExecutorService studentExecutor = Executors.newScheduledThreadPool(10);
-
         Scanner scanner = new Scanner(System.in);
         int studentCount = scanner.nextInt();
         scanner.close();
 
+        ScheduledExecutorService studentExecutor = Executors.newScheduledThreadPool(10);
         for (int i = 0; i < studentCount; i++) {
-            Student s = new Student();
-            studentExecutor.schedule(s, 0, TimeUnit.SECONDS);
+            Student s = new Student(professorStream, assistantStream);
+            studentExecutor.schedule(s, Helper.getRandomInt(0, 4), TimeUnit.SECONDS);
         }
 
         lecturerExecutor.shutdown();

@@ -1,8 +1,7 @@
 package app;
 
-public class Assistant implements Runnable {
-    @Override
-    public void run() {
-        System.out.println("Assistant thread");
+public class Assistant extends Lecturer {
+    public Assistant(EventStream stream) {
+        this.stream = stream;
     }
 }
