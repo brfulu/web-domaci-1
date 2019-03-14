@@ -16,6 +16,7 @@ public abstract class Lecturer implements Runnable {
                 event = stream.takeEvent();
                 if (event.getType() == "start") {
                     startEvents.add(event);
+                    event.setResult(Thread.currentThread().getName());
                 } else if (event.getType() == "done") {
                     event.setResult(Helper.getRandomInt(0, 10));
                     removeOldEvents(event);

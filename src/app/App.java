@@ -10,9 +10,14 @@ public class App {
     // profesor mu u resultu posalje ocjenu
     // student zapise ocjenu u deljenu memoriju
     public static AtomicInteger gradesTotal = new AtomicInteger();
+    public static AtomicInteger studentsCompleted = new AtomicInteger();
     public static long startTime;
 
     public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        int studentCount = scanner.nextInt();
+        scanner.close();
+
         EventStream professorStream = new ProfessorStream();
         EventStream assistantStream = new AssistantStream();
 
@@ -25,27 +30,23 @@ public class App {
 
         startTime = System.currentTimeMillis();
 
-        Scanner scanner = new Scanner(System.in);
-        int studentCount = scanner.nextInt();
-        scanner.close();
-
-        ScheduledExecutorService studentExecutor = Executors.newScheduledThreadPool(10);
+        ScheduledExecutorService studentExecutor = Executors.newScheduledThreadPool(30);
         for (int i = 0; i < studentCount; i++) {
             Student s = new Student(professorStream, assistantStream);
-            studentExecutor.schedule(s, Helper.getRandomInt(0, 1000), TimeUnit.MILLISECONDS);
+            studentExecutor.schedule(s, Helper.getRandomInt(1, 1000), TimeUnit.MILLISECONDS);
         }
 
         try {
             Thread.sleep(5000);
             lecturerExecutor.shutdownNow();
             studentExecutor.shutdownNow();
-            lecturerExecutor.awaitTermination(10, TimeUnit.SECONDS);
-            studentExecutor.awaitTermination(10, TimeUnit.SECONDS);
+            lecturerExecutor.awaitTermination(2, TimeUnit.SECONDS);
+            studentExecutor.awaitTermination(2, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        System.out.println(gradesTotal.doubleValue());
-        System.out.println("AS = " + (gradesTotal.doubleValue() / studentCount));
+        System.out.println(gradesTotal.intValue() + " " + studentsCompleted.intValue());
+        System.out.println("AS = " + (gradesTotal.doubleValue() / studentsCompleted.doubleValue()));
     }
 }

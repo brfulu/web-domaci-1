@@ -13,15 +13,13 @@ public class ProfessorStream extends EventStream {
     }
 
     @Override
-    boolean lock() {
+    boolean lock() throws InterruptedException {
         try {
-            boolean hasAcquired = semaphore.tryAcquire(1, TimeUnit.SECONDS);
+            boolean hasAcquired = semaphore.tryAcquire(500, TimeUnit.MILLISECONDS);
             if (!hasAcquired) return false;
-            barrier.await(1, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            return false;
+            barrier.await(500, TimeUnit.MILLISECONDS);
         } catch (BrokenBarrierException e) {
-            System.out.println("Pukla barijera");
+            return false;
         } catch (TimeoutException e) {
             semaphore.release();
             return false;

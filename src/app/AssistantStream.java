@@ -13,13 +13,8 @@ public class AssistantStream extends EventStream {
     }
 
     @Override
-    boolean lock() {
-        try {
-            return lock.tryLock(1, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            System.out.println("Nemaaaaaa");
-            return false;
-        }
+    boolean lock() throws InterruptedException {
+        return lock.tryLock(500, TimeUnit.MILLISECONDS);
     }
 
     @Override

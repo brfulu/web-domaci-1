@@ -1,15 +1,16 @@
 package app;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public abstract class EventStream {
     protected BlockingQueue<Event> events;
 
-    abstract boolean lock();
+    abstract boolean lock() throws InterruptedException;
 
     abstract void unlock();
 
-    public boolean startConnection() {
+    public boolean startConnection() throws InterruptedException {
         return lock();
     }
 
@@ -17,12 +18,8 @@ public abstract class EventStream {
         unlock();
     }
 
-    public void putEvent(Event event) {
-        try {
-            events.put(event);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public boolean putEvent(Event event) throws InterruptedException {
+        return events.offer(event, 2, java.util.concurrent.TimeUnit.SECONDS);
     }
 
     public Event takeEvent() throws InterruptedException {
