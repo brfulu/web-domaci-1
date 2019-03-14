@@ -5,10 +5,15 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class App {
-    // student se javi profesoru da je spreman da pocne
-    // student kaze zavrsio sam izlaganje
-    // profesor mu u resultu posalje ocjenu
-    // student zapise ocjenu u deljenu memoriju
+    /*
+        1. Student se bori i ceka svoj red
+        2. Student posalje startEvent predavacu (putem streama)
+        3. Predavac obradi startEvent i vrati ime svog threada
+        4. Student brani domaci x sekundi (sleep)
+        5. Student salje doneEvent predavacu
+        6. Predavac prima event i vraca ocjenu
+        7. Student zapisuje ocjenu i oslobadja lockove
+     */
     public static AtomicInteger gradesTotal = new AtomicInteger();
     public static AtomicInteger studentsCompleted = new AtomicInteger();
     public static long startTime;
