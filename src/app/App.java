@@ -35,7 +35,7 @@ public class App {
 
         startTime = System.currentTimeMillis();
 
-        ScheduledExecutorService studentExecutor = Executors.newScheduledThreadPool(30);
+        ScheduledExecutorService studentExecutor = Executors.newScheduledThreadPool(20);
         for (int i = 0; i < studentCount; i++) {
             Student s = new Student(professorStream, assistantStream);
             studentExecutor.schedule(s, Helper.getRandomInt(1, 1000), TimeUnit.MILLISECONDS);
@@ -51,7 +51,7 @@ public class App {
             e.printStackTrace();
         }
 
-        System.out.println(gradesTotal.intValue() + " " + studentsCompleted.intValue());
+        System.out.println("GradesTotal=" + gradesTotal.intValue() + " StudentsCompleted=" + studentsCompleted.intValue());
         System.out.println("AS = " + (gradesTotal.doubleValue() / studentsCompleted.doubleValue()));
     }
 }
